@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SPORTSMANAGER </title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+body{display:flex;background:#f1f5f9}
+.sidebar{width:250px;background:#0f2040;color:#fff;padding:20px;position:fixed;height:100vh}
+.nav-btn{width:100%;padding:12px;border:none;background:transparent;color:#8a9bb8;border-radius:10px;cursor:pointer;margin-bottom:8px;text-align:left;font-weight:600}
+.nav-btn.active{background:#3508fa;color:#fff}
+.content{margin-left:250px;flex:1;padding:22px}
+.page{display:none}.page.show{display:block}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px;margin-top:12px}
+.btn-orange{background:#4505f3;color:#fff;border:none;padding:9px 16px;border-radius:8px;cursor:pointer;font-weight:800}
+.btn-blue{background:#2563eb;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700}
+.btn-edit{background:#fef3c7;border:1px solid #fde68a;color:#92400e;padding:5px 9px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:700}
+.btn-del{background:#fee2e2;border:1px solid #fecaca;color:#991b1b;padding:5px 9px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:700}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+th{font-size:11px;color:#64748b;background:#f8fafc;padding:8px;text-align:left}
+td{padding:9px;font-size:13px;border-top:1px solid #f1f5f9}
+input,select{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:7px;margin:5px 0}
+.score{width:50px;text-align:center;font-weight:800;border:2px solid #e2e8f0;border-radius:6px;padding:5px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;place-items:center;z-index:99}.modal.open{display:grid}
+.modal-box{background:#fff;width:420px;border-radius:12px;padding:18px;max-height:90vh;overflow:auto}
+.bracket-wrap{display:flex;gap:12px;overflow:auto}
+.round{min-width:230px;background:#fff;border:2px solid #e2e8f0;border-radius:10px;padding:10px}
+.match-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:8px;margin-bottom:10px}
+.team-row{display:flex;justify-content:space-between;align-items:center;padding:5px}
+.team-row.winner{background:#dcfce7;border:1px solid #86efac;border-radius:5px}
+.champ-box{background:#dcfce7;border:2px solid #22c55e;border-radius:10px;padding:12px;text-align:center;margin-top:10px;font-weight:800}
+</style>
+</head>
+<body>
+<div class="sidebar">
+<div style="font-weight:800;margin-bottom:20px">🏀 SPORTSMANAGER </div>
+<button id="btn-dashboard" class="nav-btn active" onclick="goToPage('dashboard')">🏠 Dashboard</button>
+<button id="btn-tournaments" class="nav-btn" onclick="goToPage('tournaments')">🏆 Tournaments</button>
+<button id="btn-teams" class="nav-btn" onclick="goToPage('teams')">👥 Teams </button>
+<button id="btn-players" class="nav-btn" onclick="goToPage('players')">👤 Players</button>
+<button id="btn-games" class="nav-btn" onclick="goToPage('games')">🏀 Games </button>
+<button id="btn-standings" class="nav-btn" onclick="goToPage('standings')">📊 Standings</button>
+<button id="btn-bracket" class="nav-btn" onclick="goToPage('bracket')">🏆 Bracket </button>
+</div>
+
+<div class="content">
+<div id="dashboard" class="page show">
+<h1>Dashboard - </h1>
+<div class="card" style="background:linear-gradient(90deg,#1e3fb8,#0a19ee);color:#fff"><h2 id="curTName">Intrams</h2><p id="curTDate">May 2024 • Basketball</p></div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px">
+<div class="card">Tournaments<br><b id="st-tourna">1</b></div>
+<div class="card">Teams<br><b id="st-teams">0</b>/8</div>
+<div class="card">Players<br><b id="st-players">0</b></div>
+<div class="card">Games<br><b id="st-games">0</b></div>
+</div>
+</div>
+
+<div id="tournaments" class="page">
+<div style="display:flex;justify-content:space-between"><h1>Tournaments - Date Edit</h1><button class="btn-orange" onclick="openModal('tournamentModal')">+ New Tournament</button></div>
+<div class="card"><table><thead><tr><th>#</th><th>Name</th><th>Date</th><th>Sport</th><th>Actions</th></tr></thead><tbody id="tournamentBody"></tbody></table></div>
+</div>
+
+<div id="teams" class="page"><div style="display:flex;justify-content:space-between"><h1>Teams </h1><button class="btn-orange" onclick="openModal('teamModal')">+ Add Team</button></div><div class="card"><table><thead><tr><th>#</th><th>Team</th><th>Tournament</th><th>Actions</th></tr></thead><tbody id="teamsBody"></tbody></table></div></div>
+
+<div id="players" class="page"><div style="display:flex;justify-content:space-between"><h1>Players </h1><button class="btn-orange" onclick="openModal('playerModalAdd')">+ Add Player</button></div><div class="card"><table><thead><tr><th>ID</th><th>Name</th><th>Team</th><th>Jersey</th><th>Actions</th></tr></thead><tbody id="playersBody"></tbody></table></div></div>
+
+<div id="games" class="page">
+<div style="display:flex;justify-content:space-between"><h1> Date  and time</h1><div><button class="btn-orange" onclick="openModal('gameModal')">+ Add Game</button> <button class="btn-blue" onclick="saveAllGames()">💾 Save All</button></div></div>
+<div class="card"><table><thead><tr><th>#</th><th>Match</th><th>Date</th><th>Duration</th><th>Score A</th><th>Score B</th><th>Status</th><th>Actions</th></tr></thead><tbody id="gamesBody"></tbody></table></div>
+</div>
+
+<div id="standings" class="page"><h1>Standings - </h1><div class="card"><table><thead><tr><th>Rank</th><th>Team</th><th>W</th><th>L</th><th>PF</th><th>PA</th></tr></thead><tbody id="standBody"></tbody></table></div></div>
+
+<div id="bracket" class="page"><div style="display:flex;justify-content:space-between"><h1>Bracket </h1><button class="btn-orange" onclick="updateBracket()">Save & Aabante</button></div><div class="card"><div id="bracketView"></div></div></div>
+</div>
+
+<!-- MODALS -->
+<div class="modal" id="tournamentModal"><div class="modal-box"><h3>New / Edit Tournament</h3><input id="tournaName" placeholder="Tournament Name"><input id="tournaDate" type="date"><select id="tournaSport"><option>Basketball</option><option>Volleyball</option></select><select id="tournaType"><option>Single Elimination</option></select><div style="display:flex;gap:8px;margin-top:10px"><button onclick="closeModal('tournamentModal')" style="flex:1;padding:10px;background:#f1f5f9;border:none;border-radius:7px">Cancel</button><button class="btn-orange" onclick="saveTournament()" style="flex:1">Save</button></div></div></div>
+
+<div class="modal" id="teamModal"><div class="modal-box"><h3 id="teamTitle">Add Team</h3><input id="teamName" placeholder="Team: usa, ph, canada, japan, korea, china, australia, spain"><select id="teamTourna"></select><div style="display:flex;gap:8px;margin-top:10px"><button onclick="closeModal('teamModal')" style="flex:1;padding:10px;background:#f1f5f9;border:none;border-radius:7px">Cancel</button><button class="btn-orange" id="teamBtn" onclick="saveTeam()" style="flex:1">Save</button></div></div></div>
+
+<div class="modal" id="playerModalAdd"><div class="modal-box"><h3>Add Player</h3><input id="addPId" placeholder="P001"><input id="addPName" placeholder="Player Name"><select id="addPTeam"></select><input id="addPJersey" type="number" placeholder="Jersey"><select id="addPPos"><option>Guard</option><option>Forward</option><option>Center</option></select><div style="display:flex;gap:8px;margin-top:10px"><button onclick="closeModal('playerModalAdd')" style="flex:1;padding:10px;background:#f1f5f9;border:none;border-radius:7px">Cancel</button><button class="btn-orange" onclick="savePlayerNew()" style="flex:1">Save</button></div></div></div>
+
+<div class="modal" id="playerModalEdit"><div class="modal-box"><h3>Edit Player ID & Date</h3><input id="editPId"><input id="editPName"><select id="editPTeam"></select><input id="editPJersey" type="number"><input id="editPDate" type="date"><select id="editPPos"><option>Guard</option><option>Forward</option><option>Center</option></select><div style="display:flex;gap:8px;margin-top:10px"><button onclick="closeModal('playerModalEdit')" style="flex:1;padding:10px;background:#f1f5f9;border:none;border-radius:7px">Cancel</button><button class="btn-orange" onclick="updatePlayer()" style="flex:1">Update</button></div></div></div>
+
+<div class="modal" id="gameModal"><div class="modal-box"><h3>Add / Edit Game</h3><select id="gameTeamA"></select><select id="gameTeamB"></select><input id="gameDate" type="date"><select id="gameDuration"><option>40 mins</option><option>48 mins</option><option>60 mins</option><option>90 mins</option></select><input id="gameScoreA" type="number" placeholder="Score A"><input id="gameScoreB" type="number" placeholder="Score B"><div style="display:flex;gap:8px;margin-top:10px"><button onclick="closeModal('gameModal')" style="flex:1;padding:10px;background:#f1f5f9;border:none;border-radius:7px">Cancel</button><button class="btn-orange" onclick="saveGameModal()" style="flex:1">Save Game</button></div></div></div>
+
+<div class="modal" id="gameEditModal"><div class="modal-box"><h3> Date and time /h3><input id="editGameDate" type="date"><select id="editGameDuration"><option>40 mins</option><option>48 mins</option><option>60 mins</option><option>90 mins</option></select><input id="editGameScoreA" type="number" placeholder="Score A"><input id="editGameScoreB" type="number" placeholder="Score B"><div style="display:flex;gap:8px;margin-top:10px"><button onclick="closeModal('gameEditModal')" style="flex:1;padding:10px;background:#f1f5f9;border:none;border-radius:7px">Cancel</button><button class="btn-orange" onclick="updateGameModal()" style="flex:1">Update</button></div></div></div>
+
+<script>
+let tournaments=[{id:1, name:"Intrams", sport:"Basketball", type:"Single Elimination", date:new Date().toISOString().split('T')[0]}];
+let teams=[], players=[], games=[];
+let bracket={qf:[], sf:[], final:{team1:"TBD",score1:0,team2:"TBD",score2:0,champion:""}};
+let editTeamId=null, editPlayerId=null, editTournaId=null, editGameIndex=null;
+
+function goToPage(n){
+ document.querySelectorAll(".page").forEach(function(p){p.classList.remove("show");});
+ document.getElementById(n).classList.add("show");
+ document.querySelectorAll(".nav-btn").forEach(function(b){b.classList.remove("active");});
+ document.getElementById("btn-"+n).classList.add("active");
+ render(); if(n==="bracket") renderBracket();
+}
+function openModal(id){
+ if(id==="teamModal"){
+   var sel=document.getElementById("teamTourna"); sel.innerHTML="";
+   tournaments.forEach(function(t){ var o=document.createElement("option"); o.value=t.id; o.text=t.name; sel.appendChild(o); });
+ }
+ if(id==="playerModalAdd" || id==="playerModalEdit"){
+   var opts=""; teams.forEach(function(t){ opts+="<option>"+t.name+"</option>"; });
+   if(opts==="") opts="<option>No Team</option>";
+   if(id==="playerModalAdd"){ document.getElementById("addPTeam").innerHTML=opts; document.getElementById("addPId").value="P00"+(players.length+1); }
+   else document.getElementById("editPTeam").innerHTML=opts;
+ }
+ if(id==="gameModal" || id==="gameEditModal"){
+   var a=document.getElementById("gameTeamA"), b=document.getElementById("gameTeamB");
+   if(a){ var op=""; teams.forEach(function(t){ op+="<option>"+t.name+"</option>"; }); a.innerHTML=op; b.innerHTML=op; }
+   if(id==="gameModal") document.getElementById("gameDate").value=new Date().toISOString().split('T')[0];
+ }
+ document.getElementById(id).classList.add("open");
+}
+function closeModal(id){ document.getElementById(id).classList.remove("open"); }
+
+function saveTournament(){
+ var name=document.getElementById("tournaName").value.trim();
+ var date=document.getElementById("tournaDate").value||new Date().toISOString().split('T')[0];
+ if(!name) return alert("Lagyan name");
+ if(editTournaId){ var t=tournaments.find(function(x){return x.id==editTournaId}); t.name=name; t.date=date; t.sport=document.getElementById("tournaSport").value; t.type=document.getElementById("tournaType").value; editTournaId=null; }
+ else tournaments.push({id:Date.now(), name:name, date:date, sport:document.getElementById("tournaSport").value, type:document.getElementById("tournaType").value});
+ document.getElementById("tournaName").value=""; closeModal("tournamentModal"); render();
+}
+function editTournament(id){ var t=tournaments.find(function(x){return x.id==id}); editTournaId=id; document.getElementById("tournaName").value=t.name; document.getElementById("tournaDate").value=t.date; openModal("tournamentModal"); }
+
+function saveTeam(){
+ if(teams.length>=8 && !editTeamId) return alert("Max 8 teams lang! Delete ka muna ng isa");
+ var name=document.getElementById("teamName").value.trim(); if(!name) return alert("Lagyan team");
+ var tourId=document.getElementById("teamTourna").value; var tour=tournaments.find(function(t){return t.id==tourId});
+ if(editTeamId){ var tt=teams.find(function(x){return x.id==editTeamId}); tt.name=name; tt.tournament=tour.name; editTeamId=null; }
+ else teams.push({id:Date.now(), name:name, tournament:tour.name, W:0, L:0, PF:0, PA:0});
+ closeModal("teamModal"); initBracket(); render();
+}
+function editTeam(id){ var t=teams.find(function(x){return x.id==id}); editTeamId=id; document.getElementById("teamName").value=t.name; document.getElementById("teamTitle").innerText="Update Team"; openModal("teamModal"); }
+
+function savePlayerNew(){
+ var pid=document.getElementById("addPId").value.trim()||"P00"+(players.length+1);
+ var name=document.getElementById("addPName").value.trim(); if(!name) return alert("Lagyan name");
+ var date=new Date().toISOString().split('T')[0];
+ players.push({id:Date.now(), playerId:pid, name:name, team:document.getElementById("addPTeam").value, jersey:document.getElementById("addPJersey").value||"0", pos:document.getElementById("addPPos").value, date:date});
+ closeModal("playerModalAdd"); render();
+}
+function editPlayer(id){ var p=players.find(function(x){return x.id==id}); editPlayerId=id; document.getElementById("editPId").value=p.playerId; document.getElementById("editPName").value=p.name; document.getElementById("editPJersey").value=p.jersey; document.getElementById("editPDate").value=p.date||new Date().toISOString().split('T')[0]; openModal("playerModalEdit"); }
+function updatePlayer(){ var p=players.find(function(x){return x.id==editPlayerId}); p.playerId=document.getElementById("editPId").value; p.name=document.getElementById("editPName").value; p.team=document.getElementById("editPTeam").value; p.jersey=document.getElementById("editPJersey").value; p.date=document.getElementById("editPDate").value; p.pos=document.getElementById("editPPos").value; closeModal("playerModalEdit"); render(); }
+
+function saveGameModal(){
+ var a=document.getElementById("gameTeamA").value, b=document.getElementById("gameTeamB").value;
+ if(a==b) return alert("Pili ng magkaibang team");
+ games.push({a:a, b:b, date:document.getElementById("gameDate").value, duration:document.getElementById("gameDuration").value, sa:parseInt(document.getElementById("gameScoreA").value)||0, sb:parseInt(document.getElementById("gameScoreB").value)||0, done:true});
+ closeModal("gameModal"); calcStandings(); render();
+}
+function editGame(i){ editGameIndex=i; var g=games[i]; document.getElementById("editGameDate").value=g.date; document.getElementById("editGameDuration").value=g.duration; document.getElementById("editGameScoreA").value=g.sa; document.getElementById("editGameScoreB").value=g.sb; openModal("gameEditModal"); }
+function updateGameModal(){ var g=games[editGameIndex]; g.date=document.getElementById("editGameDate").value; g.duration=document.getElementById("editGameDuration").value; g.sa=parseInt(document.getElementById("editGameScoreA").value)||0; g.sb=parseInt(document.getElementById("editGameScoreB").value)||0; closeModal("gameEditModal"); calcStandings(); render(); }
+function saveAllGames(){ calcStandings(); render(); alert("All Games Saved! "+games.length+" games patagal"); }
+function calcStandings(){ teams.forEach(function(t){t.W=0; t.L=0; t.PF=0; t.PA=0;}); games.forEach(function(g){ var ta=teams.find(function(x){return x.name==g.a}); var tb=teams.find(function(x){return x.name==g.b}); if(!ta||!tb) return; ta.PF+=g.sa; ta.PA+=g.sb; tb.PF+=g.sb; tb.PA+=g.sa; if(g.sa>g.sb){ta.W++; tb.L++;} else if(g.sb>g.sa){tb.W++; ta.L++;} }); teams.sort(function(a,b){return b.W-a.W;}); }
+
+function initBracket(){
+ if(teams.length<2) return;
+ if(teams.length<=4){
+   bracket.qf=[]; if(teams.length>=2) bracket.qf.push({team1:teams[0].name,score1:0,team2:teams[1].name,score2:0,winner:""});
+   if(teams.length>=4) bracket.qf.push({team1:teams[2].name,score1:0,team2:teams[3].name,score2:0,winner:""});
+   bracket.sf=[{team1:"TBD",score1:0,team2:"TBD",score2:0,winner:""}];
+ } else {
+   bracket.qf=[]; for(var i=0;i<4;i++){ if(teams[i*2] && teams[i*2+1]) bracket.qf.push({team1:teams[i*2].name,score1:0,team2:teams[i*2+1].name,score2:0,winner:""}); }
+   bracket.sf=[]; bracket.sf.push({team1:"TBD",score1:0,team2:"TBD",score2:0,winner:""}); bracket.sf.push({team1:"TBD",score1:0,team2:"TBD",score2:0,winner:""});
+ }
+ bracket.final={team1:"TBD",score1:0,team2:"TBD",score2:0,champion:""};
+}
+function updateBracket(){
+ var qf=document.querySelectorAll(".qf1");
+ for(var i=0;i<qf.length;i++){ var m=Math.floor(i/2); if(i%2==0) bracket.qf[m].score1=parseInt(qf[i].value)||0; else bracket.qf[m].score2=parseInt(qf[i].value)||0; }
+ var sf=document.querySelectorAll(".sf1");
+ for(var j=0;j<sf.length;j++){ var mm=Math.floor(j/2); if(j%2==0) bracket.sf[mm].score1=parseInt(sf[j].value)||0; else bracket.sf[mm].score2=parseInt(sf[j].value)||0; }
+ var f1=document.getElementById("f1"), f2=document.getElementById("f2"); if(f1){ bracket.final.score1=parseInt(f1.value)||0; bracket.final.score2=parseInt(f2.value)||0; }
+ bracket.qf.forEach(function(m){ if(m.score1>m.score2) m.winner=m.team1; else if(m.score2>m.score1) m.winner=m.team2; else m.winner=""; });
+ if(bracket.qf.length>=2){ if(bracket.qf[0].winner) bracket.sf[0].team1=bracket.qf[0].winner; if(bracket.qf[1].winner) bracket.sf[0].team2=bracket.qf[1].winner; if(bracket.qf.length>=4){ if(bracket.qf[2].winner) bracket.sf[1].team1=bracket.qf[2].winner; if(bracket.qf[3].winner) bracket.sf[1].team2=bracket.qf[3].winner; } }
+ bracket.sf.forEach(function(m){ if(m.score1>m.score2) m.winner=m.team1; else if(m.score2>m.score1) m.winner=m.team2; else m.winner=""; });
+ if(bracket.sf.length==1){ if(bracket.sf[0].winner){ bracket.final.team1=bracket.sf[0].team1; bracket.final.team2=bracket.sf[0].team2; } } else { if(bracket.sf[0].winner && bracket.sf[1].winner){ bracket.final.team1=bracket.sf[0].winner; bracket.final.team2=bracket.sf[1].winner; } }
+ if(bracket.final.score1>bracket.final.score2) bracket.final.champion=bracket.final.team1; else if(bracket.final.score2>bracket.final.score1) bracket.final.champion=bracket.final.team2; else bracket.final.champion="";
+ renderBracket();
+}
+function renderBracket(){
+ var v=document.getElementById("bracketView");
+ if(teams.length<2){ v.innerHTML="<p style='text-align:center;color:#94a3b8;padding:20px'>Add 2 to 8 teams para lumabas bracket<br>8 teams max: usa, ph, canada, japan, korea, china, australia, spain</p>"; return; }
+ var html="<div class='bracket-wrap'>";
+ html+="<div class='round'><h4>Quarterfinals (8 Teams)</h4>";
+ bracket.qf.forEach(function(m){ html+="<div class='match-box'><div class='team-row "+(m.winner==m.team1?"winner":"")+"'><b>"+m.team1+"</b> <input class='score qf1' type='number' value='"+m.score1+"'></div><div class='team-row "+(m.winner==m.team2?"winner":"")+"'><b>"+m.team2+"</b> <input class='score qf1' type='number' value='"+m.score2+"'></div>"+(m.winner?"<div style='font-size:10px;color:#16a34a;text-align:center'>Winner "+m.winner+" Aabante</div>":"")+"</div>"; });
+ html+="</div><div class='round'><h4>Semifinals</h4>";
+ bracket.sf.forEach(function(m){ html+="<div class='match-box'><div class='team-row'><b>"+m.team1+"</b> <input class='score sf1' type='number' value='"+m.score1+"'></div><div class='team-row'><b>"+m.team2+"</b> <input class='score sf1' type='number' value='"+m.score2+"'></div></div>"; });
+ html+="</div><div class='round'><h4>Final</h4><div class='match-box'><div class='team-row "+(bracket.final.champion==bracket.final.team1?"winner":"")+"'><b>"+bracket.final.team1+"</b> <input class='score' id='f1' type='number' value='"+bracket.final.score1+"'></div><div class='team-row "+(bracket.final.champion==bracket.final.team2?"winner":"")+"'><b>"+bracket.final.team2+"</b> <input class='score' id='f2' type='number' value='"+bracket.final.score2+"'></div></div>";
+ if(bracket.final.champion) html+="<div class='champ-box'>🏆 "+bracket.final.champion+" - CHAMPION<br><small>Pinaka Maraming Panalo</small></div>"; else html+="<div style='text-align:center;color:#94a3b8;font-size:11px'>Lagyan score</div>";
+ html+="</div></div>"; v.innerHTML=html;
+}
+function render(){
+ document.getElementById("st-tourna").innerText=tournaments.length;
+ document.getElementById("st-teams").innerText=teams.length;
+ document.getElementById("st-players").innerText=players.length;
+ document.getElementById("st-games").innerText=games.length;
+ var tb=document.getElementById("tournamentBody"); tb.innerHTML=""; tournaments.forEach(function(t,i){ var tr=document.createElement("tr"); tr.innerHTML="<td>"+(i+1)+"</td><td><b>"+t.name+"</b></td><td><input type='date' value='"+t.date+"' onchange='tournaments["+i+"].date=this.value; render();'></td><td>"+t.sport+"</td><td><button class='btn-edit' onclick='editTournament("+t.id+")'>Edit Date</button> <button class='btn-del' onclick='tournaments=tournaments.filter(function(x){return x.id!="+t.id+"}); render();'>Delete</button></td>"; tb.appendChild(tr); });
+ var teamB=document.getElementById("teamsBody"); teamB.innerHTML=""; teams.forEach(function(t,i){ var tr=document.createElement("tr"); tr.innerHTML="<td>"+(i+1)+"</td><td><b>"+t.name+"</b></td><td>"+t.tournament+"</td><td><button class='btn-edit' onclick='editTeam("+t.id+")'>Update</button> <button class='btn-del' onclick='teams=teams.filter(function(x){return x.id!="+t.id+"}); render();'>Delete</button></td>"; teamB.appendChild(tr); });
+ var pB=document.getElementById("playersBody"); pB.innerHTML=""; players.forEach(function(p){ var tr=document.createElement("tr"); tr.innerHTML="<td><b>"+p.playerId+"</b></td><td><b>"+p.name+"</b></td><td>"+p.team+"</td><td>#"+p.jersey+"<br><small>"+(p.date||"")+"</small></td><td><button class='btn-edit' onclick='editPlayer("+p.id+")'>Edit ID/Date</button> <button class='btn-del' onclick='players=players.filter(function(x){return x.id!="+p.id+"}); render();'>Delete</button></td>"; pB.appendChild(tr); });
+ var gB=document.getElementById("gamesBody"); gB.innerHTML=""; games.forEach(function(g,i){ var tr=document.createElement("tr"); tr.innerHTML="<td>"+(i+1)+"</td><td><b>"+g.a+"</b> vs <b>"+g.b+"</b></td><td><input type='date' value='"+g.date+"' onchange='games["+i+"].date=this.value;'></td><td><select onchange='games["+i+"].duration=this.value'><option "+(g.duration=="40 mins"?"selected":"")+">40 mins</option><option "+(g.duration=="48 mins"?"selected":"")+">48 mins</option><option "+(g.duration=="60 mins"?"selected":"")+">60 mins</option><option "+(g.duration=="90 mins"?"selected":"")+">90 mins</option></select></td><td><input class='score sa' type='number' value='"+g.sa+"' style='width:45px'></td><td><input class='score sb' type='number' value='"+g.sb+"' style='width:45px'></td><td>"+(g.sa>g.sb||g.sb>g.sa?"Done":"Upcoming")+"</td><td><button class='btn-edit' onclick='editGame("+i+")'>Edit Date</button> <button class='btn-del' onclick='games.splice("+i+",1); calcStandings(); render();'>Delete</button></td>"; gB.appendChild(tr); });
+ if(games.length==0) gB.innerHTML="<tr><td colspan=8 style='text-align:center;color:#94a3b8'>No games - Click + Add Game - Patagal duration pili 60 or 90 mins</td></tr>";
+ var sB=document.getElementById("standBody"); sB.innerHTML=""; teams.forEach(function(t,i){ var tr=document.createElement("tr"); tr.innerHTML="<td>#"+(i+1)+"</td><td><b>"+t.name+"</b></td><td style='color:#16a34a;font-weight:800'>"+t.W+"</td><td>"+t.L+"</td><td>"+t.PF+"</td><td>"+t.PA+"</td>"; sB.appendChild(tr); });
+ document.getElementById("curTDate").innerText=(tournaments[0]?tournaments[0].date:"")+" • "+(tournaments[0]?tournaments[0].sport:"");
+}
+render(); renderBracket();
+</script>
+</body>
+</html>
